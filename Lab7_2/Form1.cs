@@ -24,7 +24,6 @@ namespace Lab7_2
             textBox1.Visible = false;
         }
         
-
         public void RefreshWindows()
         {
             comboBox1.Items.Clear();
@@ -45,22 +44,30 @@ namespace Lab7_2
 
         private void btnRename_Click_1(object sender, EventArgs e)
         {
-            foreach (var proc in Process.GetProcesses())
+            if (textBox1.Text != "")
             {
-                if (!string.IsNullOrEmpty(proc.MainWindowTitle))
+                foreach (var proc in Process.GetProcesses())
                 {
-                    if (comboBox1.SelectedItem.ToString() == proc.MainWindowTitle)
+                    if (!string.IsNullOrEmpty(proc.MainWindowTitle))
                     {
-                        Manager.SetWindowText(proc.MainWindowHandle, textBox1.Text);
-                        MessageBox.Show("Переименовано");
-                        RefreshWindows();
-                        Manager.ShowCloseWindow1(proc);
-                        comboBox1.Text = null;
-                        textBox2.Text = null;
-                        break;
+                        if (comboBox1.SelectedItem.ToString() == proc.MainWindowTitle)
+                        {
+                            Manager.SetWindowText(proc.MainWindowHandle, textBox1.Text);
+                            MessageBox.Show("Окно успешно переименовано", "Success");
+                            RefreshWindows();
+                            Manager.ShowCloseWindow1(proc);
+                            comboBox1.Text = null;
+                            textBox2.Text = null;
+                            btnRename.Visible = false;
+                            textBox1.Visible = false;
+                            break;
+                        }
                     }
                 }
             }
+            else
+                MessageBox.Show("Введите новое название в текстовое поле", "Error");
+
         }
 
         private void btnRefresh_Click_1(object sender, EventArgs e)
@@ -72,6 +79,7 @@ namespace Lab7_2
         {
             btnRename.Visible = true;
             textBox1.Visible = true;
+            textBox1.Text = null;
             textBox2.Text = null;
             foreach (var proc in Process.GetProcesses())
             {
