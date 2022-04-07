@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,62 +20,54 @@ namespace windows_manager
         public static extern bool IsIconic(IntPtr hWnd);
 
         [DllImport("user32.dll")]
-        //private static extern int ShowWindow(int hwnd, int nCmdShow);
-        public static extern bool ShowWindow(IntPtr hWnd, ShowWindowEnum flags);
+        public static extern bool ShowWindow(IntPtr hwnd, int cmd);
 
-        [DllImport("user32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool GetWindowPlacement(IntPtr hWnd, ref WINDOWPLACEMENT lpwndpl);
-
-        private struct WINDOWPLACEMENT
+        public static void ShowCloseWindow()
         {
-            public int length;
-            public int flags;
-            public int showCmd;
-            public System.Drawing.Point ptMinPosition;
-            public System.Drawing.Point ptMaxPosition;
-            public System.Drawing.Rectangle rcNormalPosition;
-        }
-
-        public static void Minimize_Maximize(Process proc)
-        {
-            if (proc.MainWindowHandle != IntPtr.Zero)
+            foreach (var proc in Process.GetProcesses())
             {
-
-                WINDOWPLACEMENT placement = new WINDOWPLACEMENT();
-                GetWindowPlacement(proc.MainWindowHandle, ref placement);
-                switch (placement.showCmd)
+                if (!string.IsNullOrEmpty(proc.MainWindowTitle))
                 {
-                    case 1:
-                        ShowWindow(proc.MainWindowHandle, ShowWindowEnum.ShowMinimized);
-                        break;
-                    case 2:
-                        ShowWindow(proc.MainWindowHandle, ShowWindowEnum.ShowMaximized);
-                        break;
-                    case 3:
-                        ShowWindow(proc.MainWindowHandle, ShowWindowEnum.ShowMinimized);
-                        break;
+                    if (IsIconic(proc.MainWindowHandle))
+                    {
+                        ShowWindow(proc.MainWindowHandle, 4);
+                    }
+                    else if (IsIconic(proc.MainWindowHandle) != true)
+                    {
+                        ShowWindow(proc.MainWindowHandle, 6);
+                    }
                 }
             }
+        }
 
-
-            if (IsIconic(proc.Handle) == true)
+        public static void ShowCloseWindow1(Process proc)
+        {
+            if (!string.IsNullOrEmpty(proc.MainWindowTitle))
             {
-                ShowWindow(proc.MainWindowHandle, ShowWindowEnum.ShowMaximized);
-            }
-            else if (IsIconic(proc.Handle) == false)
-            {
-                ShowWindow(proc.MainWindowHandle, ShowWindowEnum.ShowMinimized);
+                if (IsIconic(proc.MainWindowHandle))
+                {
+                    ShowWindow(proc.MainWindowHandle, 1);
+                }
+                else if (IsIconic(proc.MainWindowHandle) != true)
+                {
+                    ShowWindow(proc.MainWindowHandle, 6);
+                }
             }
         }
 
-        public enum ShowWindowEnum
+        public static string GetProperties(Process proc)
         {
-            Hide = 0,
-            ShowNormal = 1, ShowMinimized = 2, ShowMaximized = 3,
-            Maximize = 3, Show = 5,
-            Minimize = 6, ShowMinNoActivate = 7, ShowNoActivate = 8,
-            Restore = 9, ShowDefault = 10, ForceMinimized = 11
-        };
+            string properties = "";
+            Type type = proc.GetType();
+            PropertyInfo[] propertyInfos = type.GetProperties();
+            foreach (PropertyInfo property in propertyInfos)
+            {
+                if (property.Name == "ExitCode" || property.Name == "ExitTime" || property.Name == "StartInfo" ||
+                    property.Name == "StandardInput" || property.Name == "StandardOutput" || property.Name == "StandardError")
+                    continue;
+                properties += property.Name + " : " + property.GetValue(proc) + "\r\n";
+            }
+            return properties;
+        }
     }
 }

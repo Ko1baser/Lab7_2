@@ -13,25 +13,39 @@ namespace Lab7_2
             {
                 if (!string.IsNullOrEmpty(proc.MainWindowTitle))
                 {
-                    listBox1.Items.Add(proc.MainWindowTitle);
-                    listBox2.Items.Add(proc.Id);
-                    listBox3.Items.Add(Math.Round(proc.VirtualMemorySize64 / Math.Pow(2, 20), 3));
-                    listBox4.Items.Add(Math.Round(proc.WorkingSet / Math.Pow(2, 20), 3));
                     comboBox1.Items.Add(proc.MainWindowTitle);
                 }
             }
         }
 
-        private void ComboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        private void Form1_Load(object sender, EventArgs e)
         {
-            btnRename.Visible = true;
-            textBox1.Visible = true;
+            btnRename.Visible = false;
+            textBox1.Visible = false;
+        }
+        
+
+        public void RefreshWindows()
+        {
+            comboBox1.Items.Clear();
+            textBox1.Text = null;
+            foreach (var proc in Process.GetProcesses())
+            {
+                if (!string.IsNullOrEmpty(proc.MainWindowTitle))
+                {
+                    comboBox1.Items.Add(proc.MainWindowTitle);
+                }
+            }
+        }
+        
+        private void button1_Click_1(object sender, EventArgs e)
+        {
+            Manager.ShowCloseWindow();
         }
 
-        private void BtnRename_Click(object sender, EventArgs e)
+        private void btnRename_Click_1(object sender, EventArgs e)
         {
-            Process[] taskProcesses = Process.GetProcesses();
-            foreach (Process proc in taskProcesses)
+            foreach (var proc in Process.GetProcesses())
             {
                 if (!string.IsNullOrEmpty(proc.MainWindowTitle))
                 {
@@ -39,89 +53,42 @@ namespace Lab7_2
                     {
                         Manager.SetWindowText(proc.MainWindowHandle, textBox1.Text);
                         MessageBox.Show("Переименовано");
+                        RefreshWindows();
+                        Manager.ShowCloseWindow1(proc);
                         comboBox1.Text = null;
-                        textBox1.Text = null;
-                        Refresh();
+                        textBox2.Text = null;
                         break;
                     }
                 }
             }
         }
 
-        private void Form1_Load(object sender, EventArgs e)
+        private void btnRefresh_Click_1(object sender, EventArgs e)
         {
-            this.ShowInTaskbar = false;
-            btnRename.Visible = false;
-            textBox1.Visible = false;
+            RefreshWindows();
         }
 
-        private void ListBox1_SelectedIndexChanged(object sender, EventArgs e)
+        private void comboBox1_SelectedIndexChanged_1(object sender, EventArgs e)
         {
-        }
-
-        private void BtnRefresh_Click(object sender, EventArgs e)
-        {
-            Refresh();
-        }
-
-        public void Refresh()
-        {
-            comboBox1.Items.Clear();
-            listBox1.Items.Clear();
-            listBox2.Items.Clear();
-            listBox3.Items.Clear();
-            listBox4.Items.Clear();
-            textBox1.Text = null;
+            btnRename.Visible = true;
+            textBox1.Visible = true;
+            textBox2.Text = null;
             foreach (var proc in Process.GetProcesses())
             {
                 if (!string.IsNullOrEmpty(proc.MainWindowTitle))
                 {
-                    listBox1.Items.Add(proc.MainWindowTitle);
-                    listBox2.Items.Add(proc.Id);
-                    listBox3.Items.Add(Math.Round(proc.VirtualMemorySize64 / Math.Pow(2, 20), 3));
-                    listBox4.Items.Add(Math.Round(proc.WorkingSet / Math.Pow(2, 20), 3));
-                    comboBox1.Items.Add(proc.MainWindowTitle);
+                    if (comboBox1.SelectedItem.ToString() == proc.MainWindowTitle)
+                    {
+                        textBox2.Text = Manager.GetProperties(proc);
+                        break;
+                    }
                 }
             }
         }
 
-        private void listBox3_SelectedIndexChanged(object sender, EventArgs e)
+        private void btnExit_Click(object sender, EventArgs e)
         {
-
-        }
-
-        private void listBox4_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-            Process[] proc = Process.GetProcesses();
-
-            Manager.Minimize_Maximize(proc[comboBox1.SelectedIndex]);
-
-
-
-
-            //foreach (var proc in Process.GetProcesses())
-            //{
-            //    if (!string.IsNullOrEmpty(proc.MainWindowTitle))
-            //    {
-            //        if (ComboBox1.SelectedItem.ToString() == proc.MainWindowTitle)
-            //        {
-            //            if (!Manager.IsIconic(proc.Handle))
-            //            {
-            //                Manager.ShowWindow(proc.Handle, (int)Manager.ShowWindowEnum.ShowNormal);
-            //            }
-            //            else if (Manager.IsIconic(proc.Handle))
-            //            {
-            //                Manager.ShowWindow(proc.Handle, (int)Manager.ShowWindowEnum.Hide);
-            //            }
-            //            break;
-            //        }
-            //    }
-            //}
+            Environment.Exit(0);
         }
     }
 }
